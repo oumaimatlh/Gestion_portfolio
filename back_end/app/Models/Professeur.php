@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Professeur extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'nom', 'prenom', 'email', 'telephone', 'code_authentification', 'mot_de_passe',
+        'scopus', 'orcid', 'scholar', 'photo',
+        'id_administrateur', 'id_equipe', 'id_grade'
+    ];
+    
 
     // Relation avec les publications
     public function publications()
