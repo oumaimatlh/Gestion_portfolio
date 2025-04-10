@@ -1,62 +1,41 @@
-import { useEffect, useState } from 'react';
-import { fetchLaboratoires, createLaboratoire, updateLaboratoire, deleteLaboratoire } from '../../../store/Data'; // Assure-toi d'ajouter les fonctions correspondantes dans `Data.js`
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchLaboratoiresAction,
+  createLaboratoireAction,
+  updateLaboratoireAction,
+  deleteLaboratoireAction,
+} from '../../../store/Data';
 import { fetchDepartements } from '../../../store/Data';
 
 function Laboratoire() {
-  const [laboratoires, setLaboratoires] = useState([]);
+  const dispatch = useDispatch();
+  const { list: laboratoires, loading, error } = useSelector(state => state.laboratoires);
+  const departements = useSelector(state => state.departements.list);
   const [nom, setNom] = useState('');
-  const [departements, setDepartements] = useState([]);
   const [idDepartement, setIdDepartement] = useState('');
   const [editingLaboratoire, setEditingLaboratoire] = useState(null);
 
-  // Charger la liste des laboratoires et départements
+  // Charger les laboratoires et départements
   useEffect(() => {
-    loadLaboratoires();
-    loadDepartements();
-  }, []);
-
-  const loadLaboratoires = async () => {
-    try {
-      const data = await fetchLaboratoires();
-      setLaboratoires(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des laboratoires', error);
-    }
-  };
-
-  const loadDepartements = async () => {
-    try {
-      const data = await fetchDepartements();
-      setDepartements(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des départements', error);
-    }
-  };
+    dispatch(fetchLaboratoiresAction());
+    dispatch(fetchDepartements());
+  }, [dispatch]);
 
   // Gérer la soumission pour créer ou mettre à jour un laboratoire
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (editingLaboratoire) {
       // Si un laboratoire est en édition, on met à jour
-      try {
-        await updateLaboratoire(editingLaboratoire.id, { nom, id_departement: idDepartement });
-        setNom('');
-        setIdDepartement('');
-        setEditingLaboratoire(null); // Réinitialiser l'édition
-        loadLaboratoires(); // Recharger les laboratoires
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du laboratoire', error);
-      }
+      dispatch(updateLaboratoireAction(editingLaboratoire.id, { nom, id_departement: idDepartement }));
+      setNom('');
+      setIdDepartement('');
+      setEditingLaboratoire(null);
     } else {
       // Sinon, on crée un nouveau laboratoire
-      try {
-        await createLaboratoire({ nom, id_departement: idDepartement });
-        setNom('');
-        setIdDepartement('');
-        loadLaboratoires(); // Recharger les laboratoires
-      } catch (error) {
-        console.error('Erreur lors de la création du laboratoire', error);
-      }
+      dispatch(createLaboratoireAction({ nom, id_departement: idDepartement }));
+      setNom('');
+      setIdDepartement('');
     }
   };
 
@@ -64,18 +43,16 @@ function Laboratoire() {
   const handleEdit = (laboratoire) => {
     setNom(laboratoire.nom);
     setIdDepartement(laboratoire.id_departement);
-    setEditingLaboratoire(laboratoire); // Définir le laboratoire à modifier
+    setEditingLaboratoire(laboratoire);
   };
 
   // Gérer la suppression d'un laboratoire
-  const handleDelete = async (id) => {
-    try {
-      await deleteLaboratoire(id);
-      loadLaboratoires(); // Recharger les laboratoires
-    } catch (error) {
-      console.error('Erreur lors de la suppression du laboratoire', error);
-    }
+  const handleDelete = (id) => {
+    dispatch(deleteLaboratoireAction(id));
   };
+
+  if (loading) return <div>Chargement...</div>;
+  if (error) return <div>Erreur: {error.message}</div>;
 
   return (
     <div>

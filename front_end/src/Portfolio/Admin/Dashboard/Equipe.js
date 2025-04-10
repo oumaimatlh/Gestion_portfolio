@@ -7,6 +7,7 @@ function Equipe() {
   const [idLaboratoire, setIdLaboratoire] = useState('');
   const [laboratoires, setLaboratoires] = useState([]); // Liste des laboratoires
   const [editingEquipe, setEditingEquipe] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(''); // Pour afficher les erreurs
 
   useEffect(() => {
     loadEquipes();
@@ -18,6 +19,7 @@ function Equipe() {
       const data = await fetchEquipes();
       setEquipes(data);
     } catch (error) {
+      setErrorMessage('Erreur lors du chargement des équipes');
       console.error('Erreur lors du chargement des équipes', error);
     }
   };
@@ -27,31 +29,36 @@ function Equipe() {
       const data = await fetchLaboratoires();
       setLaboratoires(data);
     } catch (error) {
+      setErrorMessage('Erreur lors du chargement des laboratoires');
       console.error('Erreur lors du chargement des laboratoires', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingEquipe) {
-      try {
+
+    // Validation simple
+    if (!nom || !idLaboratoire) {
+      setErrorMessage('Tous les champs doivent être remplis');
+      return;
+    }
+    setErrorMessage('');
+
+    try {
+      if (editingEquipe) {
         await updateEquipe(editingEquipe.id, { nom, id_laboratoire: idLaboratoire });
         setNom('');
         setIdLaboratoire('');
         setEditingEquipe(null);
-        loadEquipes();
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'équipe', error);
-      }
-    } else {
-      try {
+      } else {
         await createEquipe({ nom, id_laboratoire: idLaboratoire });
         setNom('');
         setIdLaboratoire('');
-        loadEquipes();
-      } catch (error) {
-        console.error('Erreur lors de la création de l\'équipe', error);
       }
+      loadEquipes(); // Recharger la liste des équipes
+    } catch (error) {
+      setErrorMessage('Erreur lors de la création ou mise à jour de l\'équipe');
+      console.error('Erreur lors de la création ou mise à jour de l\'équipe', error);
     }
   };
 
@@ -64,8 +71,9 @@ function Equipe() {
   const handleDelete = async (id) => {
     try {
       await deleteEquipe(id);
-      loadEquipes();
+      loadEquipes(); // Recharger la liste après suppression
     } catch (error) {
+      setErrorMessage('Erreur lors de la suppression de l\'équipe');
       console.error('Erreur lors de la suppression de l\'équipe', error);
     }
   };
@@ -73,6 +81,8 @@ function Equipe() {
   return (
     <div>
       <h2>{editingEquipe ? 'Modifier une équipe' : 'Ajouter une équipe'}</h2>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} {/* Affichage de l'erreur */}
+
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -98,7 +108,7 @@ function Equipe() {
       <ul>
         {equipes.map((e) => (
           <li key={e.id}>
-            {e.nom} (Laboratoire ID: {e.id_laboratoire})
+            {e.nom} (Laboratoire: {e.id_laboratoire}) {/* Affichage du laboratoire */}
             <button onClick={() => handleEdit(e)}>Modifier</button>
             <button onClick={() => handleDelete(e.id)}>Supprimer</button>
           </li>

@@ -1,64 +1,43 @@
 import { useEffect, useState } from 'react';
-import { fetchGrades, createGrade, updateGrade, deleteGrade } from '../../../store/Data';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchGradesAction,
+  updateGrade,
+  createGrade,
+  deleteGrade
+} from '../../../store/Data';
+
 
 function Grade() {
-  const [grades, setGrades] = useState([]);
+  const dispatch = useDispatch();
+  const grades = useSelector((state) => state.grades.list);
   const [nom, setNom] = useState('');
   const [editingGrade, setEditingGrade] = useState(null);
 
-  // Charger la liste des grades
   useEffect(() => {
-    loadGrades();
-  }, []);
+    dispatch(fetchGradesAction());
+  }, [dispatch]);
 
-  const loadGrades = async () => {
-    try {
-      const data = await fetchGrades();
-      setGrades(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des grades', error);
-    }
-  };
-
-  // Gérer la soumission pour créer ou mettre à jour un grade
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (editingGrade) {
-      // Si un grade est en édition, on met à jour
-      try {
-        await updateGrade(editingGrade.id, { nom });
-        setNom('');
-        setEditingGrade(null); // Réinitialiser l'édition
-        loadGrades(); // Recharger les grades
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du grade', error);
-      }
+      await updateGrade(editingGrade.id, { nom });
     } else {
-      // Sinon, on crée un nouveau grade
-      try {
-        await createGrade({ nom });
-        setNom('');
-        loadGrades(); // Recharger les grades
-      } catch (error) {
-        console.error('Erreur lors de la création du grade', error);
-      }
+      await createGrade({ nom });
     }
+    setNom('');
+    setEditingGrade(null);
+    dispatch(fetchGradesAction());
   };
 
-  // Gérer la modification d'un grade
   const handleEdit = (grade) => {
     setNom(grade.nom);
-    setEditingGrade(grade); // Définir le grade à modifier
+    setEditingGrade(grade);
   };
 
-  // Gérer la suppression d'un grade
   const handleDelete = async (id) => {
-    try {
-      await deleteGrade(id);
-      loadGrades(); // Recharger les grades
-    } catch (error) {
-      console.error('Erreur lors de la suppression du grade', error);
-    }
+    await deleteGrade(id);
+    dispatch(fetchGradesAction());
   };
 
   return (
