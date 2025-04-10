@@ -285,6 +285,7 @@ export default function Search() {
           Rechercher
         </SearchButton>
       </SearchForm>
+      <button><a href='./Portfolio/Admin/Login'>Admin Login</a></button>
     </Container>
   );
 }

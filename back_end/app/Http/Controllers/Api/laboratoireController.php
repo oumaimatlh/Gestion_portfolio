@@ -14,8 +14,7 @@ class LaboratoireController extends Controller
      */
     public function index()
     {
-        return response()->json(Laboratoire::with('departement')->get(), 200);
-    }
+        return response()->json(Laboratoire::all(['id', 'nom']));    }
 
     /**
      * Enregistrer un nouveau laboratoire.
