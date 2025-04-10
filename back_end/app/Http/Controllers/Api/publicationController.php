@@ -21,22 +21,18 @@ class PublicationController extends Controller
      * Créer une nouvelle publication.
      */
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'titre' => 'required|string|max:255',
-            'contenu' => 'required|string',
-            'date_publication' => 'required|date',
-            'professeur_id' => 'required|exists:professeurs,id',
-        ]);
+{
+    $validated = $request->validate([
+        'titre' => 'required|string',
+        'contenu' => 'required|string',
+        'date_publication' => 'required|date',
+        'professeur_id' => 'required|exists:professeurs,id',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+    $publication = Publication::create($validated);
+    return response()->json($publication, 201);
+}
 
-        $publication = Publication::create($request->all());
-
-        return response()->json($publication, 201);
-    }
 
     /**
      * Afficher une publication spécifique.
